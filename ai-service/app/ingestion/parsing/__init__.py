@@ -6,9 +6,11 @@ File text is data, never instructions: parsers only extract it.
 from collections.abc import Callable
 from pathlib import Path
 
+from app.ingestion.parsing.docx import parse_docx
 from app.ingestion.parsing.errors import DocumentParseError, ParseError, UnsupportedFormatError
 from app.ingestion.parsing.models import Anchor, Block, ParsedDocument, SourceType
 from app.ingestion.parsing.pdf import parse_pdf
+from app.ingestion.parsing.pptx import parse_pptx
 from app.ingestion.parsing.txt import parse_txt
 
 __all__ = [
@@ -23,7 +25,9 @@ __all__ = [
 ]
 
 _PARSERS: dict[str, Callable[[Path], ParsedDocument]] = {
+    "docx": parse_docx,
     "pdf": parse_pdf,
+    "pptx": parse_pptx,
     "txt": parse_txt,
 }
 
