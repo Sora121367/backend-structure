@@ -3,7 +3,7 @@ import pytest
 from app.ingestion.parsing import ParseError, UnsupportedFormatError, parse_document
 
 
-@pytest.mark.parametrize("source_type", ["exe", "docx", "pptx"])  # docx/pptx land in the next PR
+@pytest.mark.parametrize("source_type", ["exe", "mp4", ""])
 def test_unknown_source_type_is_unsupported(tmp_path, source_type):
     path = tmp_path / "file"
     path.write_bytes(b"x")
