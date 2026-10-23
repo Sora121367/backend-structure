@@ -41,8 +41,7 @@ def test_slides_become_anchored_blocks(tmp_path):
     assert parsed.slide_count == 2
     assert [(b.anchor.slide, b.kind, b.text, b.anchor.section_path) for b in parsed.blocks] == [
         (1, "heading", "Variables", ("Variables",)),
-        (1, "paragraph", "Names for values", ("Variables",)),
-        (1, "paragraph", "Assigned with =", ("Variables",)),
+        (1, "paragraph", "Names for values\nAssigned with =", ("Variables",)),
         (1, "notes", "Mention naming rules", ("Variables",)),
         (2, "heading", "Loops", ("Loops",)),
         (2, "paragraph", "for and while", ("Loops",)),

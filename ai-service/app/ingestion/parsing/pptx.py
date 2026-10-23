@@ -39,9 +39,10 @@ def _slide_blocks(slide, number: int) -> tuple[list[Block], bool]:
         if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
             has_picture = True
         if shape.has_text_frame:
-            for paragraph in shape.text_frame.paragraphs:
-                if text := normalize(paragraph.text):
-                    blocks.append(Block(kind="paragraph", text=text, anchor=anchor))
+            # One block per text box: a title wrapped over two lines stays one block.
+            lines = (normalize(p.text) for p in shape.text_frame.paragraphs)
+            if text := "\n".join(line for line in lines if line):
+                blocks.append(Block(kind="paragraph", text=text, anchor=anchor))
         elif getattr(shape, "has_table", False) and shape.has_table:
             rows = [[normalize(cell.text) for cell in row.cells] for row in shape.table.rows]
             if text := table_text(rows):
