@@ -9,7 +9,7 @@ from app.ingestion.parsing.models import Anchor, Block, ParsedDocument
 _TEXT_BLOCK = 0
 
 
-def _section_paths(toc: list[list], page_count: int) -> list[tuple[str, ...]]:
+def section_paths(toc: list[list], page_count: int) -> list[tuple[str, ...]]:
     """Section path per page (index 0 unused) from the PDF's built-in outline.
 
     Page granularity: the last outline entry starting on or before a page applies to all of it.
@@ -39,7 +39,7 @@ def parse_pdf(path: Path) -> ParsedDocument:
         if doc.page_count == 0:
             raise DocumentParseError("The PDF has no pages.")
 
-        sections = _section_paths(doc.get_toc(simple=True), doc.page_count)
+        sections = section_paths(doc.get_toc(simple=True), doc.page_count)
         blocks: list[Block] = []
         needs_ocr: list[int] = []
         for number, page in enumerate(doc, start=1):
