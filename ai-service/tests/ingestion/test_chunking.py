@@ -95,3 +95,37 @@ def test_empty_document_gives_no_chunks():
 def test_rejects_non_positive_limit():
     with pytest.raises(ValueError):
         chunk_document(doc(para("x")), max_chars=0)
+
+
+def cue(text: str, start: float, end: float) -> Block:
+    return para(text, start_seconds=start, end_seconds=end)
+
+
+def test_timed_cues_become_passages_cut_at_a_sentence_after_30_seconds():
+    cues = [
+        cue("We start", 0, 10),
+        cue("with basics.", 10, 20),  # sentence ends at 20 s: too short to cut
+        cue("Then we go", 20, 32),
+        cue("deeper now.", 32, 40),  # sentence ends at 40 s: cut here
+        cue("New passage.", 40, 45),
+    ]
+    chunks = chunk_document(doc(*cues, source_type="video"))
+    assert [c.text for c in chunks] == [
+        "We start with basics. Then we go deeper now.",
+        "New passage.",
+    ]
+    assert (chunks[0].anchor.start_seconds, chunks[0].anchor.end_seconds) == (0, 40)
+    assert (chunks[1].anchor.start_seconds, chunks[1].anchor.end_seconds) == (40, 45)
+
+
+def test_timed_passage_is_cut_at_60_seconds_even_without_a_sentence_end():
+    cues = [cue(f"part {i}", i * 20, i * 20 + 20) for i in range(5)]
+    chunks = chunk_document(doc(*cues, source_type="video"))
+    assert [(c.anchor.start_seconds, c.anchor.end_seconds) for c in chunks] == [(0, 60), (60, 100)]
+    assert [c.text for c in chunks] == ["part 0 part 1 part 2", "part 3 part 4"]
+
+
+def test_timed_passage_respects_max_chars():
+    cues = [cue("a" * 60, 0, 5), cue("b" * 60, 5, 10)]
+    chunks = chunk_document(doc(*cues, source_type="video"), max_chars=100)
+    assert [c.text for c in chunks] == ["a" * 60, "b" * 60]
