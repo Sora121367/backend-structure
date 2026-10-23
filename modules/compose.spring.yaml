@@ -1,0 +1,35 @@
+# Spring Boot developer stack: shared infra + app DB. Run Spring Boot from the IDE.
+# docker compose -f modules/compose.spring.yaml up -d
+include:
+  - ../docker/compose.infra.yaml
+
+services:
+  app-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports: ["5432:5432"]
+    volumes: [app-db:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      retries: 10
+
+  spring:
+    profiles: [app]   # only with --profile app (full-stack test in containers)
+    build:
+      context: ..
+      dockerfile: modules/app/Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-db:5432/app
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:-http://localhost:8180/realms/insighthub}
+      AI_SERVICE_URL: http://ai-api:8000
+    ports: ["8080:8080"]
+    depends_on:
+      app-db: { condition: service_healthy }
+      keycloak: { condition: service_started }
+
+volumes:
+  app-db: {}

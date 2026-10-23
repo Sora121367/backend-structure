@@ -1,0 +1,5 @@
+# Full local stack. Infra only:            docker compose up -d
+# Everything in containers (incl. apps):   docker compose --profile app up -d --build
+include:
+  - modules/compose.spring.yaml
+  - ai-service/compose.ai.yaml

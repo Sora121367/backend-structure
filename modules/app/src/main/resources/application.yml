@@ -1,0 +1,24 @@
+# Each module uses its own prefix (app.classroom.*, app.workspace.*) to avoid edit conflicts.
+spring:
+  application:
+    name: insighthub-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/app}
+    username: ${SPRING_DATASOURCE_USERNAME:app}
+    password: ${SPRING_DATASOURCE_PASSWORD:app}
+  jpa:
+    hibernate:
+      ddl-auto: validate   # never update; schema changes go through Flyway
+    open-in-view: false
+  flyway:
+    locations: classpath:db/migration
+    out-of-order: ${FLYWAY_OUT_OF_ORDER:false}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8180/realms/insighthub}
+
+app:
+  ai-service:
+    url: ${AI_SERVICE_URL:http://localhost:8000}

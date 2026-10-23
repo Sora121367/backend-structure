@@ -1,0 +1,13 @@
+# Single place for versions. Only the tech lead changes this file.
+# Check https://start.spring.io for the latest patch before the first build.
+[versions]
+java = "21"   # toolchain used by every module (build.gradle.kts reads this)
+# Gradle 9.5.1 is pinned in gradle/wrapper/gradle-wrapper.properties
+# (to change it later: ./gradlew wrapper --gradle-version <version>)
+spring-boot = "4.1.1"
+spring-dependency-management = "1.1.7"
+# spring-modulith = "<match your Spring Boot line, see https://spring.io/projects/spring-modulith>"
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }

@@ -1,0 +1,58 @@
+# AI service developer stack: shared infra + vector DB (+ Ollama on GPU machines).
+# docker compose -f ai-service/compose.ai.yaml up -d
+# No GPU? Point OLLAMA_URL in .env at the shared dev GPU server.
+include:
+  - ../docker/compose.infra.yaml
+
+services:
+  vector-db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: vectors
+      POSTGRES_USER: ai
+      POSTGRES_PASSWORD: ai
+    ports: ["5433:5432"]
+    volumes: [vector-db:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai -d vectors"]
+      interval: 5s
+      retries: 10
+
+  ollama:
+    profiles: [gpu]
+    image: ollama/ollama:latest
+    ports: ["11434:11434"]
+    volumes: [ollama:/root/.ollama]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  ai-api:
+    profiles: [app]
+    build: .
+    environment: &ai-env
+      DATABASE_URL: postgresql://ai:ai@vector-db:5432/vectors
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+    ports: ["8000:8000"]
+    depends_on:
+      vector-db: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  ai-worker:
+    profiles: [app]
+    build: .
+    command: ["python", "-m", "app.worker"]
+    environment: *ai-env
+    depends_on:
+      vector-db: { condition: service_healthy }
+      redis: { condition: service_started }
+
+volumes:
+  vector-db: {}
+  ollama: {}

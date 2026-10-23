@@ -1,0 +1,25 @@
+# Replace @your-org/... and @username with real GitHub teams/users before enabling branch protection.
+*                              @your-org/backend-leads
+
+/docs/                         @your-org/tech-lead
+/CLAUDE.md                     @your-org/tech-lead
+/.claude/                      @your-org/tech-lead
+/.github/                      @your-org/tech-lead
+/settings.gradle.kts           @your-org/tech-lead
+/build.gradle.kts              @your-org/tech-lead
+/gradle/                       @your-org/tech-lead
+
+# Contracts: backend + clients must both approve
+/contracts/openapi.yaml        @your-org/backend-leads @your-org/client-leads
+/contracts/ai-service.yaml     @your-org/backend-leads @your-org/ai-owner
+
+/keycloak/                     @your-org/auth-owner
+/modules/common/               @your-org/tech-lead
+/modules/identity-admin/       @member-a
+/modules/profile/              @member-a
+/modules/classroom/            @member-b
+/modules/workspace/            @member-b
+/modules/learning-resource/    @member-c
+/modules/notification/         @member-c
+/modules/app/src/main/resources/db/migration/   @your-org/migration-reviewer
+/ai-service/                   @your-org/ai-owner

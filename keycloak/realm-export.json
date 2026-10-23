@@ -1,0 +1,84 @@
+{
+  "realm": "insighthub",
+  "enabled": true,
+  "displayName": "InsightHub",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "waitIncrementSeconds": 60,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "passwordPolicy": "length(10) and notUsername and notEmail and passwordHistory(5) and forceExpiredPasswordChange(365)",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["en", "km"],
+  "defaultLocale": "en",
+  "eventsEnabled": true,
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": false,
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "Client organization administrator" },
+      { "name": "instructor", "description": "Teacher" },
+      { "name": "student", "description": "Learner" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "insighthub-web",
+      "name": "InsightHub web (Next.js)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "http://localhost:3000/*" }
+    },
+    {
+      "clientId": "insighthub-mobile",
+      "name": "InsightHub iOS and Android",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["com.insighthub.app:/oauth2redirect"],
+      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "com.insighthub.app:/*" }
+    },
+    {
+      "clientId": "insighthub-api",
+      "name": "Spring Boot API (audience)",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false
+    },
+    {
+      "clientId": "insighthub-admin-service",
+      "name": "Spring Boot → Keycloak Admin REST API",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "secret": "dev-only-change-me"
+    },
+    {
+      "clientId": "insighthub-ai-caller",
+      "name": "Spring Boot → AI service (client credentials)",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "secret": "dev-only-change-me"
+    }
+  ]
+}

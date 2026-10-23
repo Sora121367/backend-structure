@@ -1,0 +1,79 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      spring: ${{ steps.filter.outputs.spring }}
+      ai: ${{ steps.filter.outputs.ai }}
+      contracts: ${{ steps.filter.outputs.contracts }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            shared: &shared
+              - 'contracts/**'
+              - 'docker/**'
+              - 'keycloak/**'
+              - 'compose.yaml'
+              - '.github/workflows/**'
+            spring:
+              - *shared
+              - 'modules/**'
+              - 'gradle/**'
+              - '*.gradle.kts'
+            ai:
+              - *shared
+              - 'ai-service/**'
+            contracts:
+              - 'contracts/**'
+
+  spring:
+    needs: changes
+    if: needs.changes.outputs.spring == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew build --no-daemon
+
+  ai:
+    needs: changes
+    if: needs.changes.outputs.ai == 'true'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: ai-service } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - run: uv run ruff check . && uv run ruff format --check .
+      - name: pytest (exit 5 = no tests yet, allowed until the first test exists)
+        run: uv run pytest || [ $? -eq 5 ]
+
+  contracts:
+    needs: changes
+    if: needs.changes.outputs.contracts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: npx --yes @redocly/cli@latest lint contracts/openapi.yaml contracts/ai-service.yaml
+      # TODO(tech lead): add a breaking-change check against main (e.g. oasdiff) that fails
+      # unless the PR has the `breaking` label.
+
+  # The ONLY required status check in branch protection. Always runs, so skipped jobs never block a PR.
+  ci-ok:
+    if: always()
+    needs: [changes, spring, ai, contracts]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo '${{ toJSON(needs) }}' | jq -e 'to_entries | all(.value.result == "success" or .value.result == "skipped")'

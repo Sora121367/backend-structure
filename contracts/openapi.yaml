@@ -1,0 +1,125 @@
+openapi: 3.1.0
+info:
+  title: InsightHub API
+  version: 0.1.0
+  description: |
+    Public API for the InsightHub web app, iOS app and Android app.
+    Contract-first: change this file in its own PR before implementing (see contracts/README.md).
+servers:
+  - url: http://localhost:8080
+    description: Local dev
+security:
+  - keycloak: []
+tags:
+  - name: profile
+  - name: identity-admin
+  - name: classroom
+  - name: workspace
+  - name: learning-resource
+  - name: notification
+  - name: system
+paths:
+  /api/v1/me:
+    get:
+      tags: [profile]
+      operationId: getCurrentUser
+      summary: Current user (identity from Keycloak + profile from Spring Boot)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CurrentUser" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /api/v1/meta/client-version:
+    get:
+      tags: [system]
+      operationId: getMinimumClientVersion
+      summary: Minimum supported app versions (mobile force-update check)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClientVersion" }
+components:
+  securitySchemes:
+    keycloak:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: http://localhost:8180/realms/insighthub/protocol/openid-connect/auth
+          tokenUrl: http://localhost:8180/realms/insighthub/protocol/openid-connect/token
+          scopes: {}
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Forbidden:
+      description: Authenticated but not allowed
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    NotFound:
+      description: Resource not found (also used when the caller may not know it exists)
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    ValidationError:
+      description: Request body or parameters invalid
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+    Problem:
+      type: object
+      description: RFC 9457 Problem Details plus a machine-readable code.
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string, example: CLASSROOM_NOT_FOUND }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              code: { type: string }
+    PageMeta:
+      type: object
+      required: [page, size, totalItems]
+      properties:
+        page: { type: integer, minimum: 0 }
+        size: { type: integer, minimum: 1 }
+        totalItems: { type: integer, format: int64 }
+    Role:
+      type: string
+      enum: [ADMIN, INSTRUCTOR, STUDENT]
+    Language:
+      type: string
+      enum: [km, en]
+    CurrentUser:
+      type: object
+      required: [id, username, email, fullName, role, profileCompleted]
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        email: { type: string, format: email }
+        fullName: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        preferredLanguage: { $ref: "#/components/schemas/Language" }
+        avatarUrl: { type: string, format: uri }
+        profileCompleted: { type: boolean }
+    ClientVersion:
+      type: object
+      required: [ios, android]
+      properties:
+        ios: { type: string, example: 1.0.0 }
+        android: { type: string, example: 1.0.0 }
