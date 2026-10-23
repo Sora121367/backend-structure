@@ -14,7 +14,7 @@ services:
       retries: 10
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.4   # pin; upgrade by PR only
+    image: quay.io/keycloak/keycloak:26.8.0   # pinned; upgrade by PR only (26.8.1 has security fixes)
     command: start-dev --import-realm
     environment:
       KC_DB: postgres
@@ -30,14 +30,17 @@ services:
     depends_on:
       keycloak-db: { condition: service_healthy }
 
-  minio:
-    image: minio/minio:latest   # pin a release tag before sharing environments
-    command: server /data --console-address ":9001"
+  rustfs:   # S3-compatible object storage. S3 API :9000, console http://localhost:9001
+    image: rustfs/rustfs:latest   # pin a release tag before sharing environments
+    command: ["/data"]
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio12345}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-rustfsadmin123}
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
     ports: ["9000:9000", "9001:9001"]
-    volumes: [minio:/data]
+    volumes: [rustfs:/data]   # if you switch to a host folder: chown -R 10001:10001 <folder> (container runs as UID 10001)
 
   redis:
     image: redis:7
@@ -49,4 +52,4 @@ services:
 
 volumes:
   keycloak-db: {}
-  minio: {}
+  rustfs: {}

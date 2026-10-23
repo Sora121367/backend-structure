@@ -48,7 +48,7 @@ Then check that it works:
 ./gradlew wrapper --gradle-version 9.5.1               # once: refresh gradlew scripts and wrapper jar to 9.5.1, then commit them
 ./gradlew --version                                      # should show Gradle 9.5.1 and a JVM 21
 ./gradlew build                                          # the first run downloads Gradle 9.5.1 and Spring Boot
-docker compose -f modules/compose.spring.yaml up -d      # Keycloak, MinIO, Redis, Mailpit, app DB
+docker compose -f modules/compose.spring.yaml up -d      # Keycloak, Rustfs, Redis, Mailpit, app DB
 ```
 
 Open http://localhost:8180 (admin/admin) and confirm the realm `insighthub` exists. Emails go to Mailpit at http://localhost:8025.
